@@ -4,7 +4,6 @@ An enterprise-grade, end-to-end data engineering pipeline built using **Azure Da
 
 ---
 
-## 🏗️ Architecture Diagram
 ## 🏗️ Technical Architecture Diagram
 
 ```mermaid
@@ -14,12 +13,12 @@ graph TD
         A[Local Computer Files CSVs]
     end
     
-    subgraph Cloud Storage & Databases
+    subgraph Cloud Storage and Databases
         C[Azure SQL Database Source Tables]
     end
 
     %% Define Orchestration, Connectivity, & Version Control
-    subgraph CI/CD & DevOps
+    subgraph DevOps
         B[Azure DevOps Git Repository]
     end
     
@@ -27,14 +26,11 @@ graph TD
     ADF[Azure Data Factory ADF]
 
     %% Define Medallion Layers
-    subgraph ADLS Gen2 Data Lake & Database
+    subgraph Data Lake and Database
         Bronze[(Bronze Layer: Raw Files)]
         Silver[(Silver Layer: Cleaned Tables)]
-        Gold[(Gold Layer: Star Schema & Data Marts)]
+        Gold[(Gold Layer: Star Schema and Data Marts)]
     end
-
-    %% Define Business Intelligence
-    PBI[Power BI Dashboards]
 
     %% Define Connections / Flow
     A -->|Secure Outbound| SHIR
@@ -50,6 +46,7 @@ graph TD
     
     %% Gold Transition
     Silver -->|Data Flow: Alter Row - Upsert If - true| ADF
+    ADF -->|Save Star Schema| Gold
     
     %% Gold Logic / Aggregations
     Gold -->|Gold Logic: SQL GROUP BY / DENSE_RANK| Gold
