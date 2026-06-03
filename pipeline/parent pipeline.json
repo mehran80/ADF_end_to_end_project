@@ -89,7 +89,7 @@
 					{
 						"activity": "Execute Pipeline SQL",
 						"dependencyConditions": [
-							"Succeeded"
+							"Failed"
 						]
 					}
 				],
@@ -105,9 +105,61 @@
 					"method": "POST",
 					"url": "https://prod-21.northcentralus.logic.azure.com:443/workflows/0c82679af4e64b488a3c52ac5e4cc814/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=JF_rjrw0b61gbp0rCCQezP79KfPl1UsqZCWn2wGZp8E",
 					"body": {
-						"value": "{\n    \"pipeline_name\" : \"@{pipeline().Pipeline}\",\n    \"run_id\" : \"@{pipeline().RunId}\",\n    \"error\" : \"@{if(equals(activity('Execute Pipeline SQL').Status,'Failed' ) ,string(activity('Execute Pipeline SQL').error), 'No Error' )}\"\n}",
+						"value": "{\n    \"pipeline_name\" : \"@{pipeline().Pipeline}\",\n    \"run_id\" : \"@{pipeline().RunId}\",\n    \"error\" : \"@{if(equals(activity('Execute Pipeline SQL').Status,'Failed' ) ,string(activity('Execute Pipeline SQL').Error.Message), 'No Error' )}\"\n}",
 						"type": "Expression"
 					}
+				}
+			},
+			{
+				"name": "Execute Pipeline Silver Layer",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline SQL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Silver Layer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"df_date_path": {
+							"value": "@formatDateTime(utcNow(), 'yyyy/MM/dd')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Execute Pipeline Gold Layer",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline Silver Layer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Gold Layer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
 				}
 			}
 		],
