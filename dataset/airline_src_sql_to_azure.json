@@ -1,0 +1,13 @@
+{
+	"name": "airline_src_sql_to_azure",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "airline_ls_sql_azure",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

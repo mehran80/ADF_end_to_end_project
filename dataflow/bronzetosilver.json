@@ -1,0 +1,223 @@
+{
+	"name": "bronzetosilver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimAirline"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimFlight"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimPassenger"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimAirport"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "FactBookings"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAirline"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkDimFlight"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkPassenger"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAirport"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkFactBookings"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumnCountry"
+				},
+				{
+					"name": "derivedColumnFirstname"
+				},
+				{
+					"name": "derivedColumnCityCountry"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     df_date_path as string",
+				"}",
+				"source(output(",
+				"          airline_id as string,",
+				"          airline_name as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:[('onprem/'+$df_date_path +'/DimAirline.csv')]) ~> DimAirline",
+				"source(output(",
+				"          flight_id as string,",
+				"          flight_number as string,",
+				"          departure_time as string,",
+				"          arrival_time as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:[('onprem/'+ $df_date_path + '/DimFlight.csv')]) ~> DimFlight",
+				"source(output(",
+				"          passenger_id as string,",
+				"          full_name as string,",
+				"          gender as string,",
+				"          age as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:[('onprem/'+ $df_date_path + '/DimPassenger.csv')]) ~> DimPassenger",
+				"source(output(",
+				"          airport_id as long,",
+				"          airport_name as string,",
+				"          city as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:[('git/'+ $df_date_path + '/DimAirport')]) ~> DimAirport",
+				"source(output(",
+				"          booking_id as integer,",
+				"          passenger_id as integer,",
+				"          flight_id as integer,",
+				"          airline_id as integer,",
+				"          origin_airport_id as integer,",
+				"          destination_airport_id as integer,",
+				"          booking_date as date,",
+				"          ticket_cost as decimal(10,2),",
+				"          flight_duration_mins as integer,",
+				"          checkin_status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:[('sql/'+ '2026/05/31' + '/FactBookings.parquet')]) ~> FactBookings",
+				"DimAirline derive(country = upper(toString(byName('country')))) ~> derivedColumnCountry",
+				"DimPassenger derive(first_name = split(toString(byName('full_name')), ' ')[1]) ~> derivedColumnFirstname",
+				"DimAirport derive(city = upper(toString(byName('city'))),",
+				"          country = upper(toString(byName('country')))) ~> derivedColumnCityCountry",
+				"derivedColumnCountry sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DimAirline',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> sinkAirline",
+				"DimFlight sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DimFlight',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2) ~> sinkDimFlight",
+				"derivedColumnFirstname sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DimPassenger',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3) ~> sinkPassenger",
+				"derivedColumnCityCountry sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'DimAirport',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 4) ~> sinkAirport",
+				"FactBookings sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'FactBooking',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 5) ~> sinkFactBookings"
+			]
+		}
+	}
+}

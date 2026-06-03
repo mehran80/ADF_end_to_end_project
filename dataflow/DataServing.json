@@ -1,0 +1,394 @@
+{
+	"name": "DataServing",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceDimAirline"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceDimFlight"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceFactBookings"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceAirport"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceFactBooking"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkFlights"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAirline"
+				},
+				{
+					"linkedService": {
+						"referenceName": "airline_azure_linked_service_onprem",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkTopRoute"
+				}
+			],
+			"transformations": [
+				{
+					"name": "joinAirline"
+				},
+				{
+					"name": "selectAirline"
+				},
+				{
+					"name": "aggregateAirline"
+				},
+				{
+					"name": "Ranking"
+				},
+				{
+					"name": "filterTopFive"
+				},
+				{
+					"name": "joinFlight"
+				},
+				{
+					"name": "selectFlight"
+				},
+				{
+					"name": "aggregateFlight"
+				},
+				{
+					"name": "RankFlightAirline"
+				},
+				{
+					"name": "RankFlight"
+				},
+				{
+					"name": "join"
+				},
+				{
+					"name": "filterFlights"
+				},
+				{
+					"name": "joinFactBookingFlight"
+				},
+				{
+					"name": "joinDimAirline"
+				},
+				{
+					"name": "joinDimAirporOriginCity"
+				},
+				{
+					"name": "selectOriginCity"
+				},
+				{
+					"name": "joinAirportDestinationCity"
+				},
+				{
+					"name": "selectDestinationCity"
+				},
+				{
+					"name": "RouteProfitability"
+				},
+				{
+					"name": "RankRoute"
+				},
+				{
+					"name": "filterTopRoute"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "alterRow2"
+				},
+				{
+					"name": "alterRow3"
+				},
+				{
+					"name": "alterRow4"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          airline_id as string,",
+				"          airline_name as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:[( 'DimAirline/*')]) ~> sourceDimAirline",
+				"source(output(",
+				"          flight_id as string,",
+				"          flight_number as string,",
+				"          departure_time as string,",
+				"          arrival_time as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:[('DimFlight/*')]) ~> sourceDimFlight",
+				"source(output(",
+				"          booking_id as integer,",
+				"          passenger_id as integer,",
+				"          flight_id as integer,",
+				"          airline_id as integer,",
+				"          origin_airport_id as integer,",
+				"          destination_airport_id as integer,",
+				"          booking_date as date,",
+				"          ticket_cost as decimal(10,2),",
+				"          flight_duration_mins as integer,",
+				"          checkin_status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:[('FactBooking/*')]) ~> sourceFactBookings",
+				"source(output(",
+				"          airport_id as long,",
+				"          airport_name as string,",
+				"          city as string,",
+				"          country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:[('DimAirport/*')]) ~> sourceAirport",
+				"source(output(",
+				"          booking_id as integer,",
+				"          passenger_id as integer,",
+				"          flight_id as integer,",
+				"          airline_id as integer,",
+				"          origin_airport_id as integer,",
+				"          destination_airport_id as integer,",
+				"          booking_date as date,",
+				"          ticket_cost as decimal(10,2),",
+				"          flight_duration_mins as integer,",
+				"          checkin_status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:[('FactBooking/*')]) ~> sourceFactBooking",
+				"sourceFactBookings, sourceDimAirline join(sourceFactBookings@airline_id == toInteger(sourceDimAirline@airline_id),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinAirline",
+				"joinAirline select(mapColumn(",
+				"          booking_id,",
+				"          passenger_id,",
+				"          flight_id,",
+				"          airline_id = sourceFactBookings@airline_id,",
+				"          origin_airport_id,",
+				"          destination_airport_id,",
+				"          booking_date,",
+				"          ticket_cost,",
+				"          flight_duration_mins,",
+				"          checkin_status,",
+				"          airline_name,",
+				"          country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectAirline",
+				"selectAirline aggregate(groupBy(airline_name),",
+				"     Total_income = sum(ticket_cost)) ~> aggregateAirline",
+				"aggregateAirline window(desc(Total_income, true),",
+				"     Top = denseRank()) ~> Ranking",
+				"Ranking filter(Top < 6) ~> filterTopFive",
+				"sourceDimFlight, sourceFactBookings join(toInteger(sourceDimFlight@flight_id) == sourceFactBookings@flight_id,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinFlight",
+				"join select(mapColumn(",
+				"          flight_id = sourceDimFlight@flight_id,",
+				"          flight_number,",
+				"          departure_time,",
+				"          arrival_time,",
+				"          booking_id,",
+				"          passenger_id,",
+				"          origin_airport_id,",
+				"          destination_airport_id,",
+				"          booking_date,",
+				"          ticket_cost,",
+				"          flight_duration_mins,",
+				"          checkin_status,",
+				"          airline_id = sourceDimAirline@airline_id,",
+				"          airline_name,",
+				"          country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectFlight",
+				"selectFlight aggregate(groupBy(airline_name,",
+				"          flight_number),",
+				"     flight_revenue = sum(ticket_cost)) ~> aggregateFlight",
+				"aggregateFlight window(over(airline_name),",
+				"     desc(flight_revenue, true),",
+				"     Top_flight_airline = denseRank()) ~> RankFlightAirline",
+				"RankFlightAirline window(desc(flight_revenue, true),",
+				"     top_flight = denseRank()) ~> RankFlight",
+				"joinFlight, sourceDimAirline join(sourceFactBookings@airline_id == toInteger(sourceDimAirline@airline_id),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join",
+				"RankFlight filter(top_flight < 6) ~> filterFlights",
+				"sourceFactBooking, sourceDimFlight join(sourceFactBooking@flight_id == toInteger(sourceDimFlight@flight_id),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinFactBookingFlight",
+				"joinFactBookingFlight, sourceDimAirline join(sourceFactBooking@airline_id == toInteger(sourceDimAirline@airline_id),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinDimAirline",
+				"joinDimAirline, sourceAirport join(origin_airport_id == toInteger(airport_id),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinDimAirporOriginCity",
+				"joinDimAirporOriginCity select(mapColumn(",
+				"          booking_id,",
+				"          passenger_id,",
+				"          flight_id = sourceFactBooking@flight_id,",
+				"          origin_airport_id,",
+				"          destination_airport_id,",
+				"          booking_date,",
+				"          ticket_cost,",
+				"          flight_duration_mins,",
+				"          checkin_status,",
+				"          flight_number,",
+				"          departure_time,",
+				"          arrival_time,",
+				"          airline_id = sourceDimAirline@airline_id,",
+				"          airline_name,",
+				"          airline_country = sourceDimAirline@country,",
+				"          airport_id,",
+				"          airport_name,",
+				"          origin_city = city,",
+				"          origin_country = sourceAirport@country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectOriginCity",
+				"selectOriginCity, sourceAirport join(destination_airport_id == toInteger(sourceAirport@airport_id),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinAirportDestinationCity",
+				"joinAirportDestinationCity select(mapColumn(",
+				"          booking_id,",
+				"          passenger_id,",
+				"          flight_id,",
+				"          origin_airport_id,",
+				"          destination_airport_id,",
+				"          booking_date,",
+				"          ticket_cost,",
+				"          flight_duration_mins,",
+				"          checkin_status,",
+				"          flight_number,",
+				"          departure_time,",
+				"          arrival_time,",
+				"          airline_id,",
+				"          airline_name,",
+				"          airline_country,",
+				"          airport_name = selectOriginCity@airport_name,",
+				"          origin_city,",
+				"          origin_country,",
+				"          airport_id = sourceAirport@airport_id,",
+				"          destination_city = city,",
+				"          destination_country = country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectDestinationCity",
+				"selectDestinationCity aggregate(groupBy(origin_city,",
+				"          destination_city,",
+				"          airline_name,",
+				"          origin_country,",
+				"          destination_country),",
+				"     route_revenue = sum(ticket_cost)) ~> RouteProfitability",
+				"RouteProfitability window(over(airline_name),",
+				"     desc(route_revenue, true),",
+				"     top_route = denseRank()) ~> RankRoute",
+				"RankRoute filter(top_route <= 5) ~> filterTopRoute",
+				"filterFlights alterRow(insertIf(1==1)) ~> alterRow1",
+				"filterTopFive alterRow(upsertIf(1==1)) ~> alterRow2",
+				"alterRow2 alterRow(insertIf(1==1)) ~> alterRow3",
+				"filterTopRoute alterRow(insertIf(1==1)) ~> alterRow4",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'topFlightBL',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkFlights",
+				"alterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'topAirlineBL',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkAirline",
+				"alterRow4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'topRouteBL',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkTopRoute"
+			]
+		}
+	}
+}

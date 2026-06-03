@@ -1,0 +1,15 @@
+{
+	"name": "airlineDataFactory8023",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "c46eaa06-7da3-47b7-938e-32da71dced9e",
+		"tenantId": "2539ef95-b754-47dd-958a-d0e386753427"
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"name": "AirlineIntegrationRintime",
+	"properties": {
+		"type": "SelfHosted",
+		"typeProperties": {
+			"linkedInfo": {
+				"resourceId": "/subscriptions/bd7532de-6986-498b-9591-cbcd35bc3d47/resourcegroups/olist_market_resource_group/providers/Microsoft.DataFactory/factories/olistMarketDataFactory/integrationruntimes/MyLaptopBridge",
+				"authorizationType": "Rbac"
+			}
+		}
+	}
+}

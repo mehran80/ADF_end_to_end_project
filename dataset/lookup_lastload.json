@@ -1,0 +1,21 @@
+{
+	"name": "lookup_lastload",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "airline_azure_linked_service_onprem",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "lastload.json",
+				"folderPath": "monitor/lastload",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

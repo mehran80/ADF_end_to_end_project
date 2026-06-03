@@ -1,0 +1,25 @@
+{
+	"name": "git_sink_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "airline_azure_linked_service_onprem",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "DimAirport",
+				"folderPath": {
+					"value": "@concat('git/', formatDateTime(utcNow(), 'yyyy/MM/dd'))",
+					"type": "Expression"
+				},
+				"fileSystem": "bronze"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

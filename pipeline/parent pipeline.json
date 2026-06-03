@@ -1,0 +1,317 @@
+{
+	"name": "parent pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline on prem",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "on_prem_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"files": {
+							"value": "@pipeline().parameters.files",
+							"type": "Expression"
+						},
+						"p_mapping_airline": {
+							"value": "@pipeline().parameters.p_mapping_airline",
+							"type": "Expression"
+						},
+						"p_mapping_flight": {
+							"value": "@pipeline().parameters.p_mapping_flight",
+							"type": "Expression"
+						},
+						"p_mapping_passenger": {
+							"value": "@pipeline().parameters.p_mapping_passenger",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Execute Pipeline API",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline on prem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pipeline Git",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline SQL",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline API",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pipeline_SQL_Azure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Web Alert",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline SQL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://prod-21.northcentralus.logic.azure.com:443/workflows/0c82679af4e64b488a3c52ac5e4cc814/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=JF_rjrw0b61gbp0rCCQezP79KfPl1UsqZCWn2wGZp8E",
+					"body": {
+						"value": "{\n    \"pipeline_name\" : \"@{pipeline().Pipeline}\",\n    \"run_id\" : \"@{pipeline().RunId}\",\n    \"error\" : \"@{if(equals(activity('Execute Pipeline SQL').Status,'Failed' ) ,string(activity('Execute Pipeline SQL').error), 'No Error' )}\"\n}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"files": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"file_name": "DimAirline.csv"
+					},
+					{
+						"file_name": "DimPassenger.csv"
+					},
+					{
+						"file_name": "DimFlight.csv"
+					}
+				]
+			},
+			"p_mapping_airline": {
+				"type": "object",
+				"defaultValue": {
+					"type": "TabularTranslator",
+					"mappings": [
+						{
+							"source": {
+								"name": "airline_id",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "airline_id",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "airline_name",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "airline_name",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "country",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "country",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						}
+					],
+					"typeConversion": true,
+					"typeConversionSettings": {
+						"allowDataTruncation": true,
+						"treatBooleanAsNumber": false
+					}
+				}
+			},
+			"p_mapping_flight": {
+				"type": "object",
+				"defaultValue": {
+					"type": "TabularTranslator",
+					"mappings": [
+						{
+							"source": {
+								"name": "flight_id",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "flight_id",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "flight_number",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "flight_number",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "departure_time",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "departure_time",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "arrival_time",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "arrival_time",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						}
+					],
+					"typeConversion": true,
+					"typeConversionSettings": {
+						"allowDataTruncation": true,
+						"treatBooleanAsNumber": false
+					}
+				}
+			},
+			"p_mapping_passenger": {
+				"type": "object",
+				"defaultValue": {
+					"type": "TabularTranslator",
+					"mappings": [
+						{
+							"source": {
+								"name": "passenger_id",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "passenger_id",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "full_name",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "full_name",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "gender",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "gender",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "age",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "age",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						},
+						{
+							"source": {
+								"name": "country",
+								"type": "String",
+								"physicalType": "String"
+							},
+							"sink": {
+								"name": "country",
+								"type": "String",
+								"physicalType": "UTF8"
+							}
+						}
+					],
+					"typeConversion": true,
+					"typeConversionSettings": {
+						"allowDataTruncation": true,
+						"treatBooleanAsNumber": false
+					}
+				}
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-06-01T13:02:36Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
