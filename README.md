@@ -56,6 +56,7 @@ graph TD
     style ADF fill:#bbf,stroke:#333,stroke-width:2px
     style Gold fill:#bfb,stroke:#333,stroke-width:2px
     style B fill:#ddd,stroke:#333,stroke-width:1px
+```
 
 ---
 
